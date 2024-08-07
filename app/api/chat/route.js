@@ -46,7 +46,10 @@ export async function POST(req) {
         }
       } catch (error) {
         controller.error(error)
+      } finally {
+        controller.close()
       }
     }
   })
+  return new NextResponse(stream)
 }
