@@ -1,5 +1,5 @@
-import {NextResponse} from 'next/server'
-import OpenAI from 'openai'
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
 
 const systemPrompt = `You are an AI customer support assistant for an online retail store called "ShopEase." Your primary goal is to assist customers with their inquiries in a friendly, efficient, and professional manner. You can help with product recommendations, order tracking, processing returns and refunds, and answering general questions about the store's policies and promotions.
 
@@ -17,39 +17,45 @@ Use relevant data: Access the customer's order history and relevant information 
 
 Handle edge cases: If a customer query falls outside your scope, politely inform them and offer to escalate the issue to a human representative.
 
-Maintain privacy and security: Do not share sensitive information unless the customer has verified their identity. Always prioritize the security of customer data.`
+Maintain privacy and security: Do not share sensitive information unless the customer has verified their identity. Always prioritize the security of customer data.`;
+
+const openAi = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPEN_ROUTER_API_KEY,
+});
 
 export async function POST(req) {
-  const openai = new OpenAI
-  const data = await req.json()
+  const data = await req.json();
 
-  const completion = await openai.chat.completions.create({
+  const completion = await openAi.chat.completions.create({
+    model: "google/gemini-flash-1.5",
     messages: [
       {
-      role: 'system', content: systemPrompt
-      },...data
+        role: "system",
+        content: systemPrompt,
+      },
+      ...data,
     ],
-    model: 'gpt-4o-mini',
-    stream: true
-  })
+    stream: true,
+  });
 
   const stream = new ReadableStream({
     async start(controller) {
-      const encoder = new TextEncoder()
+      const encoder = new TextEncoder();
       try {
         for await (const chunk of completion) {
-          const content = chunk.choices[0]?.delta?.content
+          const content = chunk.choices[0]?.delta?.content;
           if (content) {
-            const text = encoder.encode(content)
-            controller.enqueue(text)
+            const text = encoder.encode(content);
+            controller.enqueue(text);
           }
         }
       } catch (error) {
-        controller.error(error)
+        controller.error(error);
       } finally {
-        controller.close()
+        controller.close();
       }
-    }
-  })
-  return new NextResponse(stream)
+    },
+  });
+  return new NextResponse(stream);
 }

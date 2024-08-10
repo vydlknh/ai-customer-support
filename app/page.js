@@ -9,12 +9,11 @@ export default function Home() {
         "Hi! I'm the HeadStarter AI Customer Support Agent. How can I assist you today?",
     },
   ]);
-
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const sendMessage = async () => {
     setIsLoading(true);
-    if (!message.trim()) return; // Don't send empty messages
+    if (!message.trim()) return;
 
     setMessage("");
     setMessages((messages) => [
